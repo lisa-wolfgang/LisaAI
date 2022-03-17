@@ -1,0 +1,10 @@
+{
+  "3/15/22 i did a dumb": {
+    "date": "3/15/22",
+    "note": "Sorry for the large amount of announcements. This is a new system that apparently had quite a few bugs, and replit did not cooperate while I was trying to fix them. This should be the last announcement until something actually happens. (Probably jinxed it tho ahaha)"
+  },
+  "3/15/22 discord.js v13 migration": {
+    "date": "3/15/22",
+    "note": "When LisaAI was created, it was a broken experiment built with discord.js v12, which was the latest version at the time. Discord has evolved a lot since then, and so now that LisaAI is only partially broken, I've made the switch to discord.js v13!\nBecause this is a major new version of the library, LisaAI might be more broken than usual. If you notice any issues, please send me a DM at <@625855997344481310>.\nI hope you continue to enjoy (or despise) LisaAI!\n\nP.S. You may have gotten this message more than once because I'm an idiot, sorry\n\nP.S.S. I am *really*  dumb\n\nP.S.S.S. Half of these are replit's fault though"
+  }
+}
