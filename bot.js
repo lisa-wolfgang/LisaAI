@@ -24,16 +24,27 @@ module.exports = function bot() {
 
   // Variables - any value that might change and placeholders for value storage
   var devMode;
+  let promptTally = getPromptTally();
+  let answerTally = getAnswerTally();
   var wtlChannels = [];
   var wtlMessages = [];
   var wtlAuthors = [];
   var lastMsgTime = [];
   var wtlContexts = [];
 
+  String.prototype.replaceAll = function(arg1, arg2) {
+    let result = this;
+    while (result.replace(arg1, arg2) != result) {
+      result = result.replace(arg1, arg2);
+    }
+    return result.toString();
+  }
+
   // Developer actions -- set up in config.json
   devDashboard();
 
   // When bot is booted up, access Discord
+  console.log("Accessing Discord...")
   client.login(token).catch(e => {
     console.log("Something went wrong while logging in:");
     throw new Error(e);
@@ -43,6 +54,8 @@ module.exports = function bot() {
   client.on('ready', () => {
     repairDatabase();
     console.log(`I'm ready to go! :)`);
+    console.log(`Started uptime at ${Date()}`);
+    console.log(`Using ${promptTally} prompts and ${answerTally} answers`);
     setStatus();
     checkUpdates();
     keep_alive();
@@ -106,7 +119,7 @@ module.exports = function bot() {
     // Ignore all messages that are not from the bot owner in devMode
     if (!devMode || config.botOwners.includes(message.author.id)) {
       // Remove non-@LisaAI mentions
-      message.content = message.content.replace(new RegExp(`<@!(?!${client.user.id})\\d+>`, 'g'), "");
+      message.content = message.content.replace(new RegExp(`<@!?(?!${client.user.id})\\d+>`, 'g'), "");
       // Load all learning data
       let globalDict = fs.readFileSync('data.txt');
       if (globalDict && globalDict != '') { // does database have content?
@@ -197,9 +210,12 @@ module.exports = function bot() {
             if (response != "") {
               // Replace @LisaAI mentions with mentioning the message author
               response = response.replaceAll(`<@!${client.user.id}>`, `<@!${message.author.id}>`);
-              // Send the best match (disable mentions)
+              // Send the best match (disable @everyone, @here, and @roles)
               message.channel.send({
-                content: response
+                content: response,
+                allowedMentions: {
+                  "parse": ["users"]
+                }
               }).catch(e => {
                 console.log("Could not send the response message in this channel.");
               });
@@ -277,6 +293,8 @@ module.exports = function bot() {
       // If so, then add this new response to the existing answer list
       if (oldEntry != -1) {
         globalDict[oldEntry].answers.push(message.content);
+        answerTally++;
+        setStatus();
       } else {
         // If not, then make a new prompt entry
         message.wtlMessage = message.wtlMessage.map((e) => e.replace(/"/g, `\"`));
@@ -289,6 +307,9 @@ module.exports = function bot() {
         });
         object.answers.push(message.content);
         globalDict.push(object);
+        promptTally++;
+        answerTally++;
+        setStatus();
       }
       fs.writeFileSync('data.txt', JSON.stringify(globalDict));
       if (config.printLearning) console.log(`Learned response for "${message.wtlMessage.join(" ")}"`)
@@ -304,21 +325,13 @@ module.exports = function bot() {
       && one.every((e, i) => one[i] == two[i]);
   }
 
-  String.prototype.replaceAll = function(arg1, arg2) {
-    let result = this;
-    while (result.replace(arg1, arg2) != result) {
-      result = result.replace(arg1, arg2);
-    }
-    return result.toString();
-  }
-
   // Sets the bot's playing/watching status
   function setStatus(status) {
     if (devMode) {
       client.user.setActivity('devmode', { type: 'PLAYING' });
     } else {
       if (status == null) {
-        client.user.setActivity(`conversation`, { type: 'WATCHING' });
+        client.user.setActivity(`${answerTally} responses`, { type: 'PLAYING' });
       } else {
         client.user.setActivity(`${status}`, { type: 'PLAYING' });
       }
@@ -361,6 +374,28 @@ module.exports = function bot() {
     }
   }
 
+  function getPromptTally() {
+    let result = 0;
+    let globalDict = fs.readFileSync('data.txt');
+    globalDict = JSON.parse(globalDict);
+    if (globalDict && globalDict != '') {
+      result = globalDict.length;
+    }
+    return result;
+  }
+
+  function getAnswerTally() {
+    let result = 0;
+    let globalDict = fs.readFileSync('data.txt');
+    globalDict = JSON.parse(globalDict);
+    if (globalDict && globalDict != '') {
+      for (let promptObj of globalDict) {
+        result += promptObj.answers.length
+      }
+    }
+    return result;
+  }
+
   function repairDatabase() {
     if (config.repairDatabase) {
       try {
@@ -375,13 +410,13 @@ module.exports = function bot() {
             }
             let newWords = [];
             e.prompt.forEach(word => {
-              newWords.push(word.replace(new RegExp(`<@!(?!${client.user.id})\\d+>`, 'g'), ""));
+              newWords.push(word.replace(new RegExp(`<@!?(?!${client.user.id})\\d+>`, 'g'), ""));
             });
             e.prompt = newWords;
             let newAnswers = [];
             e.answers.forEach(answer => {
               if (!(answer.length > 1000 || answer.split("\n").length > 10)) {
-                newAnswers.push(answer.replace(new RegExp(`<@!(?!${client.user.id})\\d+>`, 'g'), ""));
+                newAnswers.push(answer.replace(new RegExp(`<@!?(?!${client.user.id})\\d+>`, 'g'), ""));
               }
             });
             e.answers = newAnswers;

@@ -33,14 +33,26 @@ Open `config.json`.
 - ✅ Replace @LisaAI mentions with pinging the message author
 - ✅ Remove existing non-@LisaAI mentions from database
 - ✅ Don't learn from NSFW channels/guilds
-- Create GitHub repo
+- ✅ Create GitHub repo
 - Word blacklist
 - Handle Discord's reply feature
 - Slash command for muting the bot in a channel
+- Slash command for reporting messages
 - Join message
+- Opt-in to message collection
+- Only allow training in community servers
+- Replace "lisa", "lsia", "lisai", "lisaai", and variants with message author username
+- Don't learn after five minutes pass
 - Scan message history for learning
+- Learn from public-domain books, Wikipedia, etc.
 - Store context with each answer for smarter responses (and rickroll)
-- Per-server settings
+- Typo detection
+- Replace duplicate answers with proper weight system
+- Per-server database
+- Slash command to disable profanity
+- DM all members in server on join and policy updates (and DM new members)
 - Fallback-scan without spaces
+- Conversation starters
 - `sharpness`
 - Move database to Replit Database
+- Store data using a tree model (group sentences that start with a given word)
